@@ -1,215 +1,117 @@
 import React, { useState } from "react";
-import loginIcons from "../assest/signin.gif";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import imageTobase64 from "../helpers/imageTobase64";
 import SummaryApi from "../common";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
 
 const SignUp = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [data, setData] = useState({
+  const [step, setStep] = useState(1); // 1: đăng ký, 2: OTP
+  const [userData, setUserData] = useState({
+    name: "",
     email: "",
     password: "",
-    name: "",
-    confirmPassword: "",
-    profilePic: "",
   });
+  const [otp, setOtp] = useState("");
+  const [userId, setUserId] = useState("");
 
-  const [twoFactorToken, setTwoFactorToken] = useState("");
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const handleChange = (e) =>
+    setUserData({ ...userData, [e.target.name]: e.target.value });
 
-  const navigate = useNavigate();
-
-  const handleOnChange = (e) => {
-    const { name, value } = e.target;
-    setData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleUploadPic = async (e) => {
-    const file = e.target.files[0];
-    const imagePic = await imageTobase64(file);
-    setData((prev) => ({ ...prev, profilePic: imagePic }));
-  };
-
-  const handleSubmit = async (e) => {
+  // Bước 1: đăng ký
+  const handleSignUp = async (e) => {
     e.preventDefault();
-
-    if (data.password !== data.confirmPassword) {
-      toast.error("Vui lòng xem lại mật khẩu");
-      return;
-    }
-
-    const bodyData = { ...data };
-    if (twoFactorRequired) bodyData.twoFactorToken = twoFactorToken;
-
     try {
-      const response = await fetch(SummaryApi.signUP.url, {
+      const res = await fetch(SummaryApi.signUP.url, {
         method: SummaryApi.signUP.method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData),
+        body: JSON.stringify(userData),
       });
-      const result = await response.json();
-
-      if (result.twoFactorRequired) {
-        setTwoFactorRequired(true);
-        toast.info("Vui lòng nhập mã OTP 2FA từ ứng dụng Authenticator.");
-        return;
-      }
-
+      const result = await res.json();
       if (result.success) {
         toast.success(result.message);
-        navigate("/login");
-      } else {
-        toast.error(result.message || "Đăng ký thất bại");
-      }
+        setUserId(result.userId); // lưu userId để verify OTP
+        setStep(2); // chuyển sang bước nhập OTP
+      } else toast.error(result.message);
     } catch (err) {
-      toast.error("Có lỗi xảy ra. Vui lòng thử lại.");
+      toast.error("Lỗi server, vui lòng thử lại");
+      console.error(err);
+    }
+  };
+
+  // Bước 2: xác thực OTP
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(SummaryApi.verifyOTP.url, {
+        method: SummaryApi.verifyOTP.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, otp }),
+      });
+      const result = await res.json();
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
+    } catch (err) {
+      toast.error("Lỗi server, vui lòng thử lại");
       console.error(err);
     }
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pink-100 via-red-100 to-yellow-100 p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="backdrop-blur-lg bg-white/70 border border-white/40 shadow-2xl rounded-2xl p-8 w-full max-w-md"
-      >
-        <h1 className="text-center text-3xl font-extrabold text-red-600 mb-6 drop-shadow">
-          Đăng ký tài khoản
-        </h1>
-
-        <div className="flex justify-center mb-6 relative group">
-          <motion.img
-            src={data.profilePic || loginIcons}
-            alt="Profile"
-            className="w-24 h-24 object-cover rounded-full border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl"
-            whileHover={{ rotate: 3 }}
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+      {step === 1 && (
+        <form onSubmit={handleSignUp} className="space-y-4">
+          <input
+            name="name"
+            placeholder="Họ và tên"
+            value={userData.name}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
           />
-          <label className="absolute bottom-0 bg-black/60 text-white text-xs px-3 py-1 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition">
-            Thay ảnh
-            <input type="file" onChange={handleUploadPic} className="hidden" />
-          </label>
-        </div>
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Họ và tên:
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Nhập tên của bạn..."
-              value={data.name}
-              onChange={handleOnChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white/80 outline-none focus:ring-2 focus:ring-red-400 focus:bg-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Email:
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="Nhập email của bạn..."
-              value={data.email}
-              onChange={handleOnChange}
-              required
-              className="w-full p-3 border border-gray-300 rounded-lg bg-white/80 outline-none focus:ring-2 focus:ring-red-400 focus:bg-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Mật khẩu:
-            </label>
-            <div className="flex items-center bg-white/80 border border-gray-300 p-2 rounded-lg focus-within:ring-2 focus-within:ring-red-400">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Nhập mật khẩu..."
-                value={data.password}
-                onChange={handleOnChange}
-                required
-                className="flex-1 bg-transparent outline-none"
-              />
-              <span
-                className="cursor-pointer text-xl text-gray-500"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
-              Xác nhận mật khẩu:
-            </label>
-            <div className="flex items-center bg-white/80 border border-gray-300 p-2 rounded-lg focus-within:ring-2 focus-within:ring-red-400">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="Nhập lại mật khẩu..."
-                value={data.confirmPassword}
-                onChange={handleOnChange}
-                required
-                className="flex-1 bg-transparent outline-none"
-              />
-              <span
-                className="cursor-pointer text-xl text-gray-500"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </span>
-            </div>
-          </div>
-
-          {twoFactorRequired && (
-            <div>
-              <label className="block text-sm font-medium mb-1 text-gray-700">
-                Mã OTP 2FA:
-              </label>
-              <input
-                type="text"
-                name="twoFactorToken"
-                placeholder="Nhập mã OTP"
-                value={twoFactorToken}
-                onChange={(e) => setTwoFactorToken(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg bg-white/80 outline-none focus:ring-2 focus:ring-red-400 focus:bg-white"
-              />
-            </div>
-          )}
-
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.03 }}
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={userData.email}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <input
+            name="password"
+            type="password"
+            placeholder="Mật khẩu"
+            value={userData.password}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <button
             type="submit"
-            className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-2.5 rounded-full w-full shadow-lg hover:shadow-2xl transition-all"
+            className="w-full bg-blue-500 text-white py-2 rounded"
           >
             Đăng ký
-          </motion.button>
+          </button>
         </form>
+      )}
 
-        <p className="mt-6 text-center text-sm text-gray-700">
-          Đã có tài khoản?{" "}
-          <Link
-            to="/login"
-            className="text-red-600 hover:underline font-semibold"
+      {step === 2 && (
+        <form onSubmit={handleVerifyOTP} className="space-y-4">
+          <p>Nhập OTP đã gửi đến email của bạn</p>
+          <input
+            placeholder="OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            className="w-full p-2 border rounded"
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-green-500 text-white py-2 rounded"
           >
-            Đăng nhập
-          </Link>
-        </p>
-      </motion.div>
-    </section>
+            Xác thực OTP
+          </button>
+        </form>
+      )}
+    </div>
   );
 };
 
