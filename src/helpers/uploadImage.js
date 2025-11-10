@@ -10,7 +10,10 @@ const uploadImage = async (image) => {
     body: formData,
   });
 
-  return dataResponse.json();
+  const result = await dataResponse.json();
+
+  // Trả về secure_url thay vì url
+  return result.secure_url;
 };
 
 export default uploadImage;
