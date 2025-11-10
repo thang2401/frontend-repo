@@ -13,6 +13,12 @@ const SummaryApi = {
     url: `${backendDomin}/api/user-details`,
     method: "get",
   },
+  // Dành cho SignUp
+  verifySignUpOTP: {
+    url: `${backendDomin}/api/verify-signup-otp`,
+    method: "POST",
+  },
+
   logout_user: {
     url: `${backendDomin}/api/userLogout`,
     method: "get",

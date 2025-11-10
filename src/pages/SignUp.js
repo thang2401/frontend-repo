@@ -3,7 +3,7 @@ import SummaryApi from "../common";
 import { toast } from "react-toastify";
 
 const SignUp = () => {
-  const [step, setStep] = useState(1); // 1: đăng ký, 2: OTP
+  const [step, setStep] = useState(1);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -15,7 +15,6 @@ const SignUp = () => {
   const handleChange = (e) =>
     setUserData({ ...userData, [e.target.name]: e.target.value });
 
-  // Bước 1: đăng ký
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
@@ -27,16 +26,14 @@ const SignUp = () => {
       const result = await res.json();
       if (result.success) {
         toast.success(result.message);
-        setUserId(result.userId); // lưu userId để verify OTP
-        setStep(2); // chuyển sang bước nhập OTP
+        setUserId(result.userId);
+        setStep(2);
       } else toast.error(result.message);
     } catch (err) {
       toast.error("Lỗi server, vui lòng thử lại");
-      console.error(err);
     }
   };
 
-  // Bước 2: xác thực OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
@@ -50,7 +47,6 @@ const SignUp = () => {
       else toast.error(result.message);
     } catch (err) {
       toast.error("Lỗi server, vui lòng thử lại");
-      console.error(err);
     }
   };
 
@@ -63,7 +59,6 @@ const SignUp = () => {
             placeholder="Họ và tên"
             value={userData.name}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
             required
           />
           <input
@@ -72,7 +67,6 @@ const SignUp = () => {
             placeholder="Email"
             value={userData.email}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
             required
           />
           <input
@@ -81,15 +75,9 @@ const SignUp = () => {
             placeholder="Mật khẩu"
             value={userData.password}
             onChange={handleChange}
-            className="w-full p-2 border rounded"
             required
           />
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded"
-          >
-            Đăng ký
-          </button>
+          <button type="submit">Đăng ký</button>
         </form>
       )}
 
@@ -100,15 +88,9 @@ const SignUp = () => {
             placeholder="OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            className="w-full p-2 border rounded"
             required
           />
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded"
-          >
-            Xác thực OTP
-          </button>
+          <button type="submit">Xác thực OTP</button>
         </form>
       )}
     </div>
