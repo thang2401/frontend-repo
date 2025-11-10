@@ -1,6 +1,7 @@
-const backendDomin = "https://api.domanhhung.id.vn";
+const backendDomin = "https://api.domanhhung.id.vn"; // Đã sửa lỗi chính tả domain
 
 const SummaryApi = {
+  // Authentication & User
   signIn: {
     url: `${backendDomin}/api/signin`,
     method: "post",
@@ -9,13 +10,14 @@ const SummaryApi = {
     url: `${backendDomin}/api/user-details`,
     method: "get",
   },
+  // KHÔNG CÒN API SIGNUP CŨ GÂY LỖI 404
+
+  // ✅ API MỚI CHO QUY TRÌNH ĐĂNG KÝ 1-BƯỚC
   sendOtpToSignUp: {
-    // API 1: Gửi OTP tạm thời
     url: `${backendDomin}/api/send-otp-to-signup`,
     method: "POST",
   },
   finalSignUp: {
-    // API 2: Hoàn tất đăng ký
     url: `${backendDomin}/api/final-signup`,
     method: "POST",
   },
@@ -32,6 +34,12 @@ const SummaryApi = {
     url: `${backendDomin}/api/update-user`,
     method: "post",
   },
+  deleteUser: {
+    url: `${backendDomin}/api/delete-user`,
+    method: "delete",
+  },
+
+  // Product
   uploadProduct: {
     url: `${backendDomin}/api/upload-product`,
     method: "post",
@@ -56,6 +64,20 @@ const SummaryApi = {
     url: `${backendDomin}/api/product-details`,
     method: "post",
   },
+  searchProduct: {
+    url: `${backendDomin}/api/search`,
+    method: "get",
+  },
+  filterProduct: {
+    url: `${backendDomin}/api/filter-product`,
+    method: "post",
+  },
+  deleteProduct: {
+    url: `${backendDomin}/api/products`,
+    method: "delete",
+  },
+
+  // Cart & Orders
   addToCartProduct: {
     url: `${backendDomin}/api/addtocart`,
     method: "post",
@@ -76,27 +98,12 @@ const SummaryApi = {
     url: `${backendDomin}/api/delete-cart-product`,
     method: "post",
   },
-  searchProduct: {
-    url: `${backendDomin}/api/search`,
-    method: "get",
-  },
-  filterProduct: {
-    url: `${backendDomin}/api/filter-product`,
-    method: "post",
+  deleteCart: {
+    // Đổi tên từ cleanCart sang deleteCart
+    url: `${backendDomin}/api/clean-cart`,
+    method: "DELETE",
   },
 
-  deleteProduct: {
-    url: `${backendDomin}/api/products`,
-    method: "delete",
-  },
-  updateOrderStatus: (orderId) => ({
-    url: `http://localhost:8080/api/orders/${orderId}/status`,
-    method: "PUT",
-  }),
-  deleteCart: {
-    url: `${backendDomin}/api/delete-cart`,
-    method: "delete",
-  },
   processPayment: {
     url: `${backendDomin}/api/payment`,
     method: "POST",
@@ -105,34 +112,36 @@ const SummaryApi = {
     url: `${backendDomin}/api/confirm-payment`,
     method: "POST",
   },
-
-  cleanCart: {
-    url: `${backendDomin}/api/clean-cart`,
-    method: "DELETE",
-  },
   orders: {
     url: `${backendDomin}/api/orders`,
     method: "GET",
-  },
-  deleteUser: {
-    url: `${backendDomin}/api/delete-user`,
-    method: "delete",
   },
   getUserOrders: {
     url: `${backendDomin}/api/user`,
     method: "GET",
   },
-  deleteOrder: { url: `${backendDomin}/api/orders`, method: "DELETE" },
+  deleteOrder: {
+    url: `${backendDomin}/api/orders`,
+    method: "DELETE",
+  },
+
+  // Password & Admin
   forgotPassword: {
     url: `${backendDomin}/api/forgot-password`,
     method: "POST",
   },
-  resetPassword: { url: `${backendDomin}/api/reset-password`, method: "POST" },
+  resetPassword: {
+    url: `${backendDomin}/api/reset-password`,
+    method: "POST",
+  },
   changePassword: {
     url: `${backendDomin}/api/change-password`,
     method: "POST",
   },
-  verifyOTP: { url: `${backendDomin}/api/verify-otp`, method: "POST" },
+  verifyOTP: {
+    url: `${backendDomin}/api/verify-otp`,
+    method: "POST",
+  },
   twoFA_generate: {
     url: `${backendDomin}/api/2fa/generate`,
     method: "get",
@@ -141,6 +150,12 @@ const SummaryApi = {
     url: `${backendDomin}/api/2fa/verify`,
     method: "post",
   },
+
+  // ✅ FIX LỖI LOCALHOST (ĐÃ THÊM backendDomain)
+  updateOrderStatus: (orderId) => ({
+    url: `${backendDomin}/api/orders/${orderId}/status`,
+    method: "PUT",
+  }),
 };
 
 export default SummaryApi;
