@@ -1,10 +1,6 @@
 const backendDomin = "https://api.domanhhung.id.vn";
 
 const SummaryApi = {
-  signUP: {
-    url: `${backendDomin}/api/signup`,
-    method: "post",
-  },
   signIn: {
     url: `${backendDomin}/api/signin`,
     method: "post",
@@ -13,9 +9,14 @@ const SummaryApi = {
     url: `${backendDomin}/api/user-details`,
     method: "get",
   },
-  // Dành cho SignUp
-  verifySignUpOTP: {
-    url: `${backendDomin}/api/verify-signup-otp`,
+  sendOtpToSignUp: {
+    // API 1: Gửi OTP tạm thời
+    url: `${backendDomin}/api/send-otp-to-signup`,
+    method: "POST",
+  },
+  finalSignUp: {
+    // API 2: Hoàn tất đăng ký
+    url: `${backendDomin}/api/final-signup`,
     method: "POST",
   },
 
