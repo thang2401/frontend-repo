@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SummaryApi from "../common";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const SignUp = () => {
   const [step, setStep] = useState(1);
@@ -11,31 +12,41 @@ const SignUp = () => {
   });
   const [otp, setOtp] = useState("");
   const [userId, setUserId] = useState("");
+  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
+  const navigate = useNavigate(); // Khởi tạo navigate
 
   const handleChange = (e) =>
     setUserData({ ...userData, [e.target.name]: e.target.value });
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await fetch(SummaryApi.signUP.url, {
-        method: SummaryApi.signUP.method,
+      // Đã sửa tên API (thường là signUp)
+      const res = await fetch(SummaryApi.signUp.url, {
+        method: SummaryApi.signUp.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
       const result = await res.json();
+
+      setLoading(false);
+
       if (result.success) {
         toast.success(result.message);
-        setUserId(result.userId);
+        // Backend nên trả về userId để xác thực OTP
+        setUserId(result.userId || result.data._id);
         setStep(2);
       } else toast.error(result.message);
     } catch (err) {
+      setLoading(false);
       toast.error("Lỗi server, vui lòng thử lại");
     }
   };
 
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await fetch(SummaryApi.verifyOTP.url, {
         method: SummaryApi.verifyOTP.method,
@@ -43,9 +54,18 @@ const SignUp = () => {
         body: JSON.stringify({ userId, otp }),
       });
       const result = await res.json();
-      if (result.success) toast.success(result.message);
-      else toast.error(result.message);
+
+      setLoading(false);
+
+      if (result.success) {
+        toast.success(result.message + ". Bạn có thể đăng nhập ngay.");
+        // ✅ Chuyển hướng sau khi xác thực thành công
+        navigate("/login");
+      } else {
+        toast.error(result.message);
+      }
     } catch (err) {
+      setLoading(false);
       toast.error("Lỗi server, vui lòng thử lại");
     }
   };
@@ -54,11 +74,15 @@ const SignUp = () => {
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
       {step === 1 && (
         <form onSubmit={handleSignUp} className="space-y-4">
+          <h2 className="text-xl font-bold text-center mb-4">
+            Đăng Ký Tài Khoản
+          </h2>
           <input
             name="name"
             placeholder="Họ và tên"
             value={userData.name}
             onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
             required
           />
           <input
@@ -67,6 +91,7 @@ const SignUp = () => {
             placeholder="Email"
             value={userData.email}
             onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
             required
           />
           <input
@@ -75,22 +100,39 @@ const SignUp = () => {
             placeholder="Mật khẩu"
             value={userData.password}
             onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
             required
           />
-          <button type="submit">Đăng ký</button>
+          <button
+            type="submit"
+            disabled={loading} // Vô hiệu hóa khi đang tải
+            className="w-full p-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400"
+          >
+            {loading ? "Đang xử lý..." : "Đăng ký"}
+          </button>
         </form>
       )}
 
       {step === 2 && (
         <form onSubmit={handleVerifyOTP} className="space-y-4">
-          <p>Nhập OTP đã gửi đến email của bạn</p>
+          <h2 className="text-xl font-bold text-center mb-4">Xác Thực OTP</h2>
+          <p className="text-sm text-gray-600 text-center">
+            Mã OTP đã gửi đến **{userData.email}**. Vui lòng kiểm tra email.
+          </p>
           <input
-            placeholder="OTP"
+            placeholder="Mã OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded text-center text-lg tracking-widest"
             required
           />
-          <button type="submit">Xác thực OTP</button>
+          <button
+            type="submit"
+            disabled={loading} // Vô hiệu hóa khi đang tải
+            className="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400"
+          >
+            {loading ? "Đang xác thực..." : "Xác thực OTP"}
+          </button>
         </form>
       )}
     </div>
