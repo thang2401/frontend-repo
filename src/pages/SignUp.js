@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SummaryApi from "../common";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [step, setStep] = useState(1);
@@ -11,9 +11,9 @@ const SignUp = () => {
     password: "",
   });
   const [otp, setOtp] = useState("");
-  const [userId, setUserId] = useState("");
-  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
-  const navigate = useNavigate(); // Khởi tạo navigate
+  const [userId, setUserId] = useState(""); // Lưu userId từ Backend
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) =>
     setUserData({ ...userData, [e.target.name]: e.target.value });
@@ -22,21 +22,19 @@ const SignUp = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Đã sửa tên API (thường là signUp)
       const res = await fetch(SummaryApi.signUp.url, {
         method: SummaryApi.signUp.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
       const result = await res.json();
-
       setLoading(false);
 
       if (result.success) {
         toast.success(result.message);
-        // Backend nên trả về userId để xác thực OTP
+        // Lấy userId để chuyển sang bước xác thực OTP
         setUserId(result.userId || result.data._id);
-        setStep(2);
+        setStep(2); // Chuyển sang bước 2
       } else toast.error(result.message);
     } catch (err) {
       setLoading(false);
@@ -49,6 +47,7 @@ const SignUp = () => {
     setLoading(true);
     try {
       const res = await fetch(SummaryApi.verifyOTP.url, {
+        // Đảm bảo SummaryApi.verifyOTP trỏ đến POST /api/verify-otp
         method: SummaryApi.verifyOTP.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, otp }),
@@ -58,8 +57,8 @@ const SignUp = () => {
       setLoading(false);
 
       if (result.success) {
-        toast.success(result.message + ". Bạn có thể đăng nhập ngay.");
-        // ✅ Chuyển hướng sau khi xác thực thành công
+        toast.success(result.message);
+        // Chuyển hướng đến trang đăng nhập sau khi xác thực thành công
         navigate("/login");
       } else {
         toast.error(result.message);
@@ -72,6 +71,7 @@ const SignUp = () => {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+      {/* BƯỚC 1: ĐĂNG KÝ */}
       {step === 1 && (
         <form onSubmit={handleSignUp} className="space-y-4">
           <h2 className="text-xl font-bold text-center mb-4">
@@ -85,6 +85,7 @@ const SignUp = () => {
             className="w-full p-2 border border-gray-300 rounded"
             required
           />
+          {/* Email và Password inputs */}
           <input
             name="email"
             type="email"
@@ -105,20 +106,22 @@ const SignUp = () => {
           />
           <button
             type="submit"
-            disabled={loading} // Vô hiệu hóa khi đang tải
+            disabled={loading}
             className="w-full p-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400"
           >
-            {loading ? "Đang xử lý..." : "Đăng ký"}
+            {loading ? "Đang gửi mã..." : "Đăng ký"}
           </button>
         </form>
       )}
 
+      {/* BƯỚC 2: XÁC THỰC OTP */}
       {step === 2 && (
         <form onSubmit={handleVerifyOTP} className="space-y-4">
           <h2 className="text-xl font-bold text-center mb-4">Xác Thực OTP</h2>
           <p className="text-sm text-gray-600 text-center">
             Mã OTP đã gửi đến **{userData.email}**. Vui lòng kiểm tra email.
           </p>
+
           <input
             placeholder="Mã OTP"
             value={otp}
@@ -126,9 +129,10 @@ const SignUp = () => {
             className="w-full p-2 border border-gray-300 rounded text-center text-lg tracking-widest"
             required
           />
+
           <button
             type="submit"
-            disabled={loading} // Vô hiệu hóa khi đang tải
+            disabled={loading}
             className="w-full p-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400"
           >
             {loading ? "Đang xác thực..." : "Xác thực OTP"}
