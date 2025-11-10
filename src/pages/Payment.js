@@ -37,7 +37,7 @@ const Payment = () => {
     if (user?.name) setFormData((prev) => ({ ...prev, name: user.name }));
     setLoading(true);
     fetchCartItems();
-    // ✅ FIX 1 (DÒNG 42): Sửa http thành https
+    // ✅ FIX 1: Sửa http thành https cho fetch API tỉnh/thành phố lần đầu
     fetch("https://provinces.open-api.vn/api/p/")
       .then((res) => res.json())
       .then(setProvinces)
@@ -46,7 +46,7 @@ const Payment = () => {
 
   useEffect(() => {
     if (province) {
-      // ✅ FIX 1: Sửa http thành https
+      // ✅ FIX 2: Sửa http thành https cho fetch API quận/huyện
       fetch(`https://provinces.open-api.vn/api/p/${province}?depth=2`)
         .then((res) => res.json())
         .then((data) => {
@@ -65,7 +65,7 @@ const Payment = () => {
 
   useEffect(() => {
     if (district) {
-      // ✅ FIX 1: Sửa http thành https
+      // ✅ FIX 3: Sửa http thành https cho fetch API phường/xã
       fetch(`https://provinces.open-api.vn/api/d/${district}?depth=2`)
         .then((res) => res.json())
         .then((data) => {
@@ -247,7 +247,7 @@ const Payment = () => {
           ) : (
             <>
               {cartItems.map((item, idx) => {
-                // ✅ FIX 2: Buộc đường dẫn hình ảnh thành HTTPS
+                // ✅ FIX: Buộc đường dẫn hình ảnh thành HTTPS
                 const imageUrl = item.productId.productImage?.[0] || "";
                 const secureImageUrl = imageUrl.replace(
                   /^http:\/\//i,
@@ -302,7 +302,7 @@ const Payment = () => {
           </h2>
 
           <form onSubmit={handlePayment} className="space-y-5">
-            {/* ... Form inputs ... */}
+            <div>{/* ... Phần form input ... */}</div>
           </form>
         </div>
       </div>
