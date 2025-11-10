@@ -9,7 +9,7 @@ const OrderManagement = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/orders"); // không cần token
+        const res = await fetch("https://api.domanhhung.id.vn/api/orders"); // không cần token
         const data = await res.json();
 
         if (data.success && Array.isArray(data.data)) {
@@ -30,7 +30,7 @@ const OrderManagement = () => {
     setLoadingButtons((prev) => ({ ...prev, [orderId]: true }));
     try {
       const res = await fetch(
-        `http://localhost:8080/api/orders/${orderId}/status`,
+        `https://api.domanhhung.id.vn/api/orders/${orderId}/status`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
