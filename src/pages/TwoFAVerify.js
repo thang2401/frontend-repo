@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom"; // useNavigate vẫn được import nhưng không dùng
+// ĐÃ SỬA LỖI: Xóa 'useNavigate' khỏi dòng import
 import SummaryApi from "../common";
 
 const TwoFAVerify = () => {
   const [otp, setOtp] = useState("");
-  // ĐÃ SỬA LỖI: Biến 'navigate' đã được xóa hoặc comment out
-  // const navigate = useNavigate(); // Dòng này không cần thiết vì bạn dùng window.location.href
+  // Biến 'navigate' đã được loại bỏ ở phiên bản trước.
 
   const handleVerify = async (e) => {
     e.preventDefault();
