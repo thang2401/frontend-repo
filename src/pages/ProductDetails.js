@@ -29,7 +29,8 @@ const ProductDetails = () => {
   const { fetchUserAddToCart } = useContext(Context);
   const navigate = useNavigate();
 
-  const fetchProductDetails = async () => {
+  // ĐÃ SỬA LỖI: Bọc trong useCallback và thêm params.id vào dependency
+  const fetchProductDetails = useCallback(async () => {
     setLoading(true);
     const response = await fetch(SummaryApi.productDetails.url, {
       method: SummaryApi.productDetails.method,
@@ -40,11 +41,11 @@ const ProductDetails = () => {
     setLoading(false);
     setData(dataResponse?.data);
     setActiveImage(dataResponse?.data?.productImage[0]);
-  };
+  }, [params?.id]); // QUAN TRỌNG: Chỉ phụ thuộc vào params.id
 
   useEffect(() => {
     fetchProductDetails();
-  }, [params]);
+  }, [fetchProductDetails]); // QUAN TRỌNG: Chỉ phụ thuộc vào fetchProductDetails (đã là hàm useCallback)
 
   const handleMouseEnterProduct = (imageURL) => setActiveImage(imageURL);
 

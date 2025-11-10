@@ -25,7 +25,10 @@ const QrPayment = () => {
     products
   )}&name=${encodeURIComponent(name)}`;
 
-  const qrText = `Mời quét để xác nhận thanh toán\n${confirmUrl}`;
+  // ĐÃ SỬA LỖI: Biến 'qrText' không sử dụng đã bị xóa.
+  /*
+  const qrText = `Mời quét để xác nhận thanh toán\n${confirmUrl}`; 
+  */
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">

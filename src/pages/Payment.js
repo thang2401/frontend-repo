@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react"; // Thêm useCallback
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Context from "../context";
@@ -23,17 +23,8 @@ const Payment = () => {
   const userId = user?._id;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user?.name) setFormData((prev) => ({ ...prev, name: user.name }));
-    setLoading(true);
-    fetchCartItems();
-    fetch("http://provinces.open-api.vn/api/p/")
-      .then((res) => res.json())
-      .then(setProvinces)
-      .finally(() => setLoading(false));
-  }, []);
-
-  const fetchCartItems = async () => {
+  // 1. Bọc fetchCartItems trong useCallback để tránh cảnh báo dependency trong useEffect
+  const fetchCartItems = useCallback(async () => {
     const res = await fetch(SummaryApi.addToCartProductView.url, {
       method: SummaryApi.addToCartProductView.method,
       credentials: "include",
@@ -41,7 +32,21 @@ const Payment = () => {
     });
     const result = await res.json();
     if (result.success) setCartItems(result.data || []);
-  };
+  }, []); // Hàm này không dùng biến ngoài nên mảng dependency rỗng
+
+  useEffect(() => {
+    // Sửa lỗi: Thêm user.name vào mảng dependency
+    if (user?.name) setFormData((prev) => ({ ...prev, name: user.name }));
+    setLoading(true);
+    fetchCartItems();
+    fetch("http://provinces.open-api.vn/api/p/")
+      .then((res) => res.json())
+      .then(setProvinces)
+      .finally(() => setLoading(false));
+  }, [user?.name, fetchCartItems]); // Thêm user?.name và fetchCartItems
+
+  // Logic fetchCartItems gốc (đã chuyển lên trên và bọc trong useCallback)
+  // const fetchCartItems = async () => { ... };
 
   useEffect(() => {
     if (province) {

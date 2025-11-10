@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // useNavigate vẫn được import nhưng không dùng
 import SummaryApi from "../common";
 
 const TwoFAVerify = () => {
   const [otp, setOtp] = useState("");
-  const navigate = useNavigate();
+  // ĐÃ SỬA LỖI: Biến 'navigate' đã được xóa hoặc comment out
+  // const navigate = useNavigate(); // Dòng này không cần thiết vì bạn dùng window.location.href
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -28,9 +29,7 @@ const TwoFAVerify = () => {
 
     if (data.success) {
       toast.success("Xác thực 2FA thành công! Đang chuyển hướng...");
-      // Sau khi verify thành công, backend cần trả về một token mới có cờ twoFA: true
-      // Ta gọi lại API current_user để nhận token mới và cập nhật trạng thái người dùng
-      // (Giả sử logic cập nhật user details có sẵn trong App.js)
+      // Giữ nguyên logic chuyển hướng dùng window.location.href
       setTimeout(() => {
         window.location.href = "/admin-panel"; // Reload để đảm bảo token mới được sử dụng
       }, 1000);
