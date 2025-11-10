@@ -1,24 +1,106 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import { Outlet, useLocation } from "react-router-dom";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useEffect, useState, useCallback } from "react";
+import SummaryApi from "./common";
+import Context from "./context";
+import { useDispatch } from "react-redux";
+import { setUserDetails } from "./store/userSlice";
+import ScrollToTop from "./helpers/ScrollToTop";
 
 function App() {
+  const dispatch = useDispatch();
+  const [cartProductCount, setCartProductCount] = useState(0);
+  const location = useLocation();
+
+  // 🔹 Dùng useCallback để đảm bảo function ổn định
+  const fetchUserDetails = useCallback(async () => {
+    try {
+      const dataResponse = await fetch(SummaryApi.current_user.url, {
+        method: SummaryApi.current_user.method,
+        credentials: "include",
+      });
+      const dataApi = await dataResponse.json();
+
+      if (dataApi.success) {
+        dispatch(setUserDetails(dataApi.data));
+      }
+    } catch (err) {
+      console.error("❌ Lỗi fetch user details:", err);
+    }
+  }, [dispatch]);
+
+  const fetchUserAddToCart = useCallback(async () => {
+    try {
+      const dataResponse = await fetch(SummaryApi.addToCartProductCount.url, {
+        method: SummaryApi.addToCartProductCount.method,
+        credentials: "include",
+      });
+      const dataApi = await dataResponse.json();
+      setCartProductCount(dataApi?.data?.count || 0);
+    } catch (err) {
+      console.error("❌ Lỗi fetch cart count:", err);
+    }
+  }, []);
+
+  // 🔹 useEffect chỉ phụ thuộc vào function ổn định
+  useEffect(() => {
+    fetchUserDetails();
+    fetchUserAddToCart();
+  }, [fetchUserDetails, fetchUserAddToCart]);
+
+  // Routes cần ẩn Header & Footer hoàn toàn
+  const hideHeaderFooterRoutes = [
+    "/login",
+    "/myorder",
+    "/cart",
+    "/sign-up",
+    "/payment",
+    "/reset-password",
+    "/forgot-password",
+    "/chang-password",
+    "/myoder",
+  ];
+
+  // Routes chỉ ẩn Footer (ví dụ OrderManagement)
+  const hideFooterRoutes = [
+    "/admin-panel/all-payment",
+    "/admin-panel/all-users",
+    "/admin-panel/all-products",
+  ];
+
+  const shouldHideHeaderFooter = hideHeaderFooterRoutes.includes(
+    location.pathname
+  );
+  const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Context.Provider
+      value={{
+        fetchUserDetails,
+        cartProductCount,
+        fetchUserAddToCart,
+        setCartProductCount,
+      }}
+    >
+      <ScrollToTop />
+      <ToastContainer position="top-right" />
+
+      {!shouldHideHeaderFooter && <Header />}
+
+      <main
+        className={`min-h-[calc(100vh-120px)] ${
+          !shouldHideHeaderFooter ? "pt-16" : ""
+        }`}
+      >
+        <Outlet />
+      </main>
+
+      {!shouldHideFooter && !shouldHideHeaderFooter && <Footer />}
+    </Context.Provider>
   );
 }
 
