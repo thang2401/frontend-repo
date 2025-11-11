@@ -8,17 +8,18 @@ const SignUp = () => {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false); // Đã gửi OTP thành công
-  const [userId, setUserId] = useState(""); // userId tạm thời
+  const [otpSent, setOtpSent] = useState(false);
+  const [userId, setUserId] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) =>
     setUserData({ ...userData, [e.target.name]: e.target.value });
 
-  // 📧 HÀM CHỈ GỬI OTP (API: /api/send-otp-to-signup)
+  // 📧 Gửi OTP
   const handleSendOTP = async (e) => {
     e.preventDefault();
     if (!userData.email) return toast.error("Vui lòng nhập Email trước.");
@@ -28,7 +29,7 @@ const SignUp = () => {
       const res = await fetch(SummaryApi.sendOtpToSignUp.url, {
         method: SummaryApi.sendOtpToSignUp.method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userData.email }), // CHỈ GỬI EMAIL
+        body: JSON.stringify({ email: userData.email }),
       });
       const result = await res.json();
       setLoading(false);
@@ -36,7 +37,7 @@ const SignUp = () => {
       if (result.success) {
         toast.success(result.message);
         setUserId(result.userId);
-        setOtpSent(true); // Mở ô nhập OTP
+        setOtpSent(true);
       } else toast.error(result.message);
     } catch (err) {
       setLoading(false);
@@ -44,102 +45,153 @@ const SignUp = () => {
     }
   };
 
-  // ✅ HÀM XỬ LÝ SUBMIT TOÀN BỘ FORM (API: /api/final-signup)
+  // ✅ Hoàn tất đăng ký
   const handleFinalSignUp = async (e) => {
     e.preventDefault();
     if (!otpSent) return toast.error("Vui lòng gửi và nhập mã OTP.");
     if (otp.length !== 6) return toast.error("Mã OTP phải có 6 chữ số.");
+    if (userData.password !== userData.confirmPassword)
+      return toast.error("Mật khẩu xác nhận không khớp.");
 
     setLoading(true);
     try {
       const res = await fetch(SummaryApi.finalSignUp.url, {
         method: SummaryApi.finalSignUp.method,
         headers: { "Content-Type": "application/json" },
-        // Gửi toàn bộ dữ liệu + userId tạm thời
         body: JSON.stringify({ ...userData, otp, userId }),
       });
       const result = await res.json();
       setLoading(false);
 
       if (result.success) {
-        toast.success("Đăng ký thành công! Đang tự động đăng nhập...");
-        // Tài khoản đã được tạo và token đã được lưu (Backend làm)
-        navigate("/"); // Chuyển về trang chủ hoặc dashboard
+        toast.success("Đăng ký thành công! Đang chuyển hướng...");
+        navigate("/");
       } else toast.error(result.message);
     } catch (err) {
       setLoading(false);
-      toast.error("Lỗi server, vui lòng thử lại");
+      toast.error("Lỗi server, vui lòng thử lại.");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold text-center mb-4">Đăng Ký Tài Khoản</h2>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-100 to-pink-100">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+        <h2 className="text-2xl font-bold text-center text-indigo-700 mb-6">
+          Đăng Ký Tài Khoản
+        </h2>
 
-      <form onSubmit={handleFinalSignUp} className="space-y-4">
-        {/* Input Tên */}
-        <input
-          name="name"
-          placeholder="Họ và tên"
-          value={userData.name}
-          onChange={handleChange}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
-        {/* Input Mật khẩu */}
-        <input
-          name="password"
-          type="password"
-          placeholder="Mật khẩu (ít nhất 12 ký tự, HOA, thường, số, ký tự đặc biệt)"
-          value={userData.password}
-          onChange={handleChange}
-          className="w-full p-2 border border-gray-300 rounded"
-          required
-        />
+        <form onSubmit={handleFinalSignUp} className="space-y-5">
+          {/* Họ và tên */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">
+              Họ và tên
+            </label>
+            <input
+              name="name"
+              placeholder="Nhập họ và tên"
+              value={userData.name}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+          </div>
 
-        {/* Input Email và Nút GỬI OTP */}
-        <div className="flex gap-2">
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={userData.email}
-            onChange={handleChange}
-            className="w-full flex-grow p-2 border border-gray-300 rounded"
-            required
-            disabled={otpSent}
-          />
+          {/* Email + Gửi OTP */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">
+              Email
+            </label>
+            <div className="flex gap-2">
+              <input
+                name="email"
+                type="email"
+                placeholder="Nhập email của bạn"
+                value={userData.email}
+                onChange={handleChange}
+                className="w-full flex-grow p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+                disabled={otpSent}
+              />
+              <button
+                type="button"
+                onClick={handleSendOTP}
+                disabled={loading || otpSent || !userData.email}
+                className="px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all"
+              >
+                {loading ? "Đang gửi..." : otpSent ? "Đã gửi" : "Gửi OTP"}
+              </button>
+            </div>
+          </div>
+
+          {/* Mật khẩu */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">
+              Mật khẩu
+            </label>
+            <input
+              name="password"
+              type="password"
+              placeholder="Ít nhất 12 ký tự, gồm HOA, thường, số, ký tự đặc biệt"
+              value={userData.password}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+          </div>
+
+          {/* Xác nhận mật khẩu */}
+          <div>
+            <label className="block text-gray-600 font-medium mb-1">
+              Xác nhận mật khẩu
+            </label>
+            <input
+              name="confirmPassword"
+              type="password"
+              placeholder="Nhập lại mật khẩu"
+              value={userData.confirmPassword}
+              onChange={handleChange}
+              className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+          </div>
+
+          {/* Nhập OTP */}
+          {otpSent && (
+            <div>
+              <label className="block text-gray-600 font-medium mb-1">
+                Mã OTP
+              </label>
+              <input
+                name="otp"
+                placeholder="Nhập mã OTP gồm 6 chữ số"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full p-3 border rounded-lg text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+              />
+            </div>
+          )}
+
+          {/* Submit */}
           <button
-            type="button" // Quan trọng: type="button" để không submit form
-            onClick={handleSendOTP}
-            disabled={loading || otpSent || !userData.email}
-            className="p-2 whitespace-nowrap bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:bg-gray-400 text-sm"
+            type="submit"
+            disabled={loading || !otpSent}
+            className="w-full py-3 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 disabled:bg-gray-400 transition-all shadow-md"
           >
-            {loading ? "Đang gửi..." : otpSent ? "Đã gửi" : "Gửi OTP"}
+            {loading ? "Đang xử lý..." : "Hoàn tất đăng ký"}
           </button>
-        </div>
+        </form>
 
-        {/* Ô NHẬP OTP (Chỉ hiện khi đã gửi mã) */}
-        {otpSent && (
-          <input
-            name="otp"
-            placeholder="Mã OTP (6 chữ số)"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded text-center text-lg tracking-widest"
-            required
-          />
-        )}
-
-        {/* Nút SUBMIT CUỐI CÙNG */}
-        <button
-          type="submit"
-          disabled={loading || !otpSent} // Chỉ cho submit khi đã nhận OTP
-          className="w-full p-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400"
-        >
-          {loading ? "Đang hoàn tất..." : "Hoàn tất Đăng ký"}
-        </button>
-      </form>
+        <p className="text-center text-gray-600 mt-5 text-sm">
+          Đã có tài khoản?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            className="text-indigo-600 font-medium hover:underline cursor-pointer"
+          >
+            Đăng nhập ngay
+          </span>
+        </p>
+      </div>
     </div>
   );
 };
